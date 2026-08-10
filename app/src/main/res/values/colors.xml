@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_launcher_background">#1A143D</color>
+    <color name="bg_deep">#0E0B24</color>
+    <color name="bg_violet">#241A5E</color>
+    <color name="gold">#FFC53D</color>
+    <color name="gold_dark">#E09B12</color>
+    <color name="cyan">#38D6FF</color>
+    <color name="purple">#8A5CF6</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="panel">#2E2266</color>
+</resources>
