@@ -278,6 +278,33 @@ android {
         density { enableSplit = true }
         abi { enableSplit = true }
     }
+
+    // Rename release outputs: gray-Coin_Pulse-1.0.1.apk / gray-Coin_Pulse-1.0.1.aab
+    applicationVariants.all {
+        val variant = this
+        outputs.all {
+            val out = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
+            if (variant.buildType.name == "release") {
+                out.outputFileName = "gray-Coin_Pulse-${variant.versionName}.apk"
+            }
+        }
+    }
+}
+
+tasks.whenTaskAdded {
+    if (name == "bundleRelease") {
+        doLast {
+            val outDir = File(layout.buildDirectory.get().asFile, "outputs/bundle/release")
+            outDir.listFiles()
+                ?.filter { it.isFile && (it.extension == "aab") }
+                ?.forEach { f ->
+                    val ver = android.defaultConfig.versionName
+                    val target = File(outDir, "gray-Coin_Pulse-${ver}.aab")
+                    if (target.exists()) target.delete()
+                    f.renameTo(target)
+                }
+        }
+    }
 }
 
 dependencies {
