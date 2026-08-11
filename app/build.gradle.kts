@@ -295,14 +295,18 @@ tasks.whenTaskAdded {
     if (name == "bundleRelease") {
         doLast {
             val outDir = File(layout.buildDirectory.get().asFile, "outputs/bundle/release")
-            outDir.listFiles()
-                ?.filter { it.isFile && (it.extension == "aab") }
-                ?.forEach { f ->
-                    val ver = android.defaultConfig.versionName
-                    val target = File(outDir, "gray-Coin_Pulse-${ver}.aab")
-                    if (target.exists()) target.delete()
-                    f.renameTo(target)
-                }
+            // Only rename the Gradle-generated output (app-release.aab), not an
+            // already-renamed file from a previous run. Without this guard a
+            // second build would find both files, rename app-release.aab to
+            // the target, then delete the target when processing the old named
+            // file — leaving nothing in the directory.
+            val src = File(outDir, "app-release.aab")
+            if (src.exists()) {
+                val ver = android.defaultConfig.versionName
+                val target = File(outDir, "gray-Coin_Pulse-${ver}.aab")
+                if (target.exists()) target.delete()
+                src.renameTo(target)
+            }
         }
     }
 }
