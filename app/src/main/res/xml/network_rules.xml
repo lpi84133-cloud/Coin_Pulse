@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Partner pages routinely pull an asset or two over plain http from inside an
+    https document, and a WebView that refuses those renders the page without
+    them. Cleartext is permitted for that reason and no other: everything this
+    application itself sends — the backend question, the attribution lookup —
+    goes to https endpoints.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

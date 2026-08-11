@@ -1,0 +1,51 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  Coin Pulse — shell configuration (attribution gate, config endpoint, push).
+#
+#  Copy to  pulse.properties  (gitignored) and fill in. The build derives every
+#  storage key, sentinel, timeout, cipher parameter and UA version from
+#  shell.seed and encodes the credentials below into BuildConfig, so none of
+#  them appear in the source tree or in git.
+#
+#  Without pulse.properties the build still works: the credentials resolve to
+#  empty strings and the app always opens the game.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ══ 1. SEED ══════════════════════════════════════════════════════════════════
+# Unique per application. Never reuse across submissions, not even with one
+# character changed. Fresh value:  ./gradlew shellSeed
+# Changing it after release renames the storage keys, so an upgrading install
+# is seen as a first launch. Pick it once, before the first build.
+shell.seed = CHANGE-ME-PER-APP
+
+# ══ 2. IDENTITY ══════════════════════════════════════════════════════════════
+shell.bundleId    = com.coinpulse.coinpulsegame
+shell.versionCode = 1
+shell.versionName = 1.0.0
+
+# ══ 3. BACKEND AND SDK CREDENTIALS ═══════════════════════════════════════════
+shell.configEndpoint  =
+shell.trackerKey      =
+shell.analyticsProject =
+shell.gcdBase         = https://gcdsdk.appsflyer.com/install_data/v4.0/
+
+# ══ 4. URL ALLOWLIST ═════════════════════════════════════════════════════════
+# Host suffixes accepted from the config endpoint and from push payloads. A
+# host matches when it equals an entry or is a subdomain of one. Navigation
+# inside the WebView is deliberately NOT gated — an affiliate chain crosses
+# hosts nobody can enumerate in advance.
+#
+# Empty accepts anything and the build prints a warning. Fill it with the
+# partner hosts before release.
+shell.allowedHosts =
+
+# ══ 5. USER-AGENT ════════════════════════════════════════════════════════════
+# The shell presents itself as Chrome on Android; the version tuple is derived
+# from the seed. The appid/appname tail is what no honest browser writes —
+# leave it off unless a partner backend genuinely routes on it.
+shell.uaTail      = false
+shell.uaTailToken = CoinPulse
+
+# ══ 6. DEBUG ═════════════════════════════════════════════════════════════════
+# Opens the WebView on this URL directly, skipping attribution and the backend.
+# Compiled out of release builds.
+shell.forceUrl =

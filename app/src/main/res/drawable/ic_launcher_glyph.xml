@@ -1,0 +1,33 @@
+<!--
+    The themed-icon layer for Android 13 and up. The system draws it as a flat
+    silhouette in the user's palette, so it is the coin reduced to its outline
+    and the pulse across it — the painting itself has nothing that survives
+    being flattened to one colour.
+
+    The group scales the mark down to the 66dp the mask is guaranteed to show:
+    the drawing is authored in a 24-unit square that stands for the full 108dp
+    layer, and 0.7 of that lands inside the safe circle with room to spare.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="#FFFFFFFF">
+
+    <group
+        android:pivotX="12"
+        android:pivotY="12"
+        android:scaleX="0.7"
+        android:scaleY="0.7">
+
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:fillType="evenOdd"
+            android:pathData="M12,1.6 C6.26,1.6 1.6,6.26 1.6,12 C1.6,17.74 6.26,22.4 12,22.4 C17.74,22.4 22.4,17.74 22.4,12 C22.4,6.26 17.74,1.6 12,1.6 Z M12,3.9 C16.47,3.9 20.1,7.53 20.1,12 C20.1,16.47 16.47,20.1 12,20.1 C7.53,20.1 3.9,16.47 3.9,12 C3.9,7.53 7.53,3.9 12,3.9 Z" />
+
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M6.2,11.1 L9.1,11.1 L10.35,7.7 C10.5,7.3 10.88,7.05 11.3,7.06 C11.72,7.07 12.09,7.34 12.22,7.74 L14.1,13.5 L14.86,11.62 C15.0,11.29 15.32,11.1 15.68,11.1 L17.8,11.1 L17.8,12.9 L16.28,12.9 L14.86,16.4 C14.71,16.78 14.34,17.02 13.93,17.0 C13.52,16.99 13.17,16.72 13.04,16.33 L11.22,10.75 L10.55,12.56 C10.42,12.92 10.08,13.16 9.7,13.16 L6.2,13.16 Z" />
+    </group>
+</vector>

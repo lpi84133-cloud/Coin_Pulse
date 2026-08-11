@@ -1,26 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Normal permission: haptic feedback on hits, toggleable in Settings. -->
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!--
+        The profile avatar can be taken with the camera, and the game asks for
+        this before it launches the capture. Undeclared, that request is denied
+        without ever reaching the user and the button does nothing.
+    -->
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
+    <!--
+        Package visibility for the links a page can offer: wallets, banks and
+        stores are opened with ACTION_VIEW, and without this the system reports
+        no handler for any of them.
+    -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="http" />
+        </intent>
+    </queries>
+
     <application
-        android:allowBackup="true"
+        android:name=".pulsegate.PulseApp"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/backup_rules"
+        tools:replace="android:allowBackup,android:fullBackupContent,android:dataExtractionRules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="false"
         android:hardwareAccelerated="true"
+        android:enableOnBackInvokedCallback="true"
+        android:networkSecurityConfig="@xml/network_rules"
         android:theme="@style/Theme.CoinPulse">
 
+        <!--
+            The messaging SDK draws the card itself whenever the app is not in
+            the foreground, and it uses these two: a flat silhouette it can tint,
+            and the channel this application posts on. The channel id is derived
+            per application by the build.
+        -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/pulse_alert_mark" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="${alertChannel}" />
+
         <activity
-            android:name=".MainActivity"
+            android:name=".pulsegate.EntryGate"
             android:exported="true"
-            android:screenOrientation="sensorLandscape"
-            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop"
+            android:screenOrientation="sensor"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.CoinPulse.Board">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -28,10 +75,50 @@
         </activity>
 
         <activity
+            android:name=".deck.WebDeck"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:screenOrientation="sensor"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode"
+            android:windowSoftInputMode="adjustResize"
+            android:hardwareAccelerated="true"
+            android:theme="@style/Theme.CoinPulse.Page" />
+
+        <activity
+            android:name=".deck.PermitDeck"
+            android:exported="false"
+            android:screenOrientation="sensor"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:theme="@style/Theme.CoinPulse.Board" />
+
+        <activity
+            android:name=".deck.LinkLostDeck"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:screenOrientation="sensor"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:theme="@style/Theme.CoinPulse.Board" />
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:screenOrientation="sensorLandscape"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout"
+            android:launchMode="singleTop" />
+
+        <activity
             android:name=".WebViewActivity"
             android:exported="false"
             android:screenOrientation="sensorLandscape"
             android:configChanges="orientation|screenSize|keyboardHidden|screenLayout" />
+
+        <service
+            android:name=".dispatchbox.PushGate"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
 
         <provider
             android:name="androidx.core.content.FileProvider"

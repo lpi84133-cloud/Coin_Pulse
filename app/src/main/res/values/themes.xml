@@ -6,4 +6,28 @@
         <item name="android:windowBackground">@color/bg_deep</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
     </style>
+
+    <!--
+        The full-bleed boards: splash, no-signal, notifications. Black behind the
+        artwork and no window animation, so nothing of the system shows between
+        one board and the next.
+    -->
+    <style name="Theme.CoinPulse.Board" parent="Theme.CoinPulse">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:statusBarColor">@android:color/black</item>
+        <item name="android:navigationBarColor">@android:color/black</item>
+    </style>
+
+    <!--
+        The page host. The preview window is switched off here on purpose: the
+        WebView takes a moment to warm up, and the system's stand-in for that
+        moment is the white-then-black flash with an Android robot in it that
+        users report as the app crashing on open.
+    -->
+    <style name="Theme.CoinPulse.Page" parent="Theme.CoinPulse.Board">
+        <item name="android:windowDisablePreview">true</item>
+        <item name="android:windowIsTranslucent">false</item>
+    </style>
 </resources>

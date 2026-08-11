@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    The artwork is a full-bleed painting rather than a logo on a plate, so it
+    goes in the background layer and fills the whole 108dp square. The coin is
+    inset far enough that no launcher mask — circle, squircle or rounded square
+    — reaches it, and the picture still runs to the edge, with no border and
+    nothing for the mask to cut off.
+
+    The foreground is intentionally empty: the parallax layer has nothing to
+    show that the picture does not already say, and a second copy of the coin
+    on top of the first reads as a double exposure while the icon settles.
+-->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@color/ic_launcher_background" />
+    <background android:drawable="@mipmap/ic_launcher_scene" />
     <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+    <monochrome android:drawable="@drawable/ic_launcher_glyph" />
 </adaptive-icon>

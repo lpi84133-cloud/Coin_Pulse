@@ -12,3 +12,7 @@
 # Signing — never commit these
 /release.jks
 /keystore.properties
+
+# Seed and credentials — never commit these
+/pulse.properties
+/app/google-services.json
