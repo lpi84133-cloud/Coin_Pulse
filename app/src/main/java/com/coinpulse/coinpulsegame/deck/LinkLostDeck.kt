@@ -11,7 +11,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.coinpulse.coinpulsegame.R
-import com.coinpulse.coinpulsegame.pulsegate.EntryGate
+import com.coinpulse.coinpulsegame.MainActivity
 import com.coinpulse.coinpulsegame.relaynet.LinkWatch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -118,7 +118,7 @@ class LinkLostDeck : AppCompatActivity() {
                 .putExtra(WebDeck.EXTRA_PAGE_URL, page)
                 .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         } else {
-            Intent(this, EntryGate::class.java)
+            Intent(this, MainActivity::class.java)
                 .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
         }
     }

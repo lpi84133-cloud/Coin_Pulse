@@ -61,7 +61,7 @@
             android:value="${alertChannel}" />
 
         <activity
-            android:name=".pulsegate.EntryGate"
+            android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
             android:screenOrientation="sensor"
@@ -100,7 +100,7 @@
             android:theme="@style/Theme.CoinPulse.Board" />
 
         <activity
-            android:name=".MainActivity"
+            android:name=".GameActivity"
             android:exported="false"
             android:screenOrientation="sensorLandscape"
             android:configChanges="orientation|screenSize|keyboardHidden|screenLayout"

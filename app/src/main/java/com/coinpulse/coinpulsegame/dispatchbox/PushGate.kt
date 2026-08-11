@@ -10,7 +10,7 @@ import com.coinpulse.coinpulsegame.BuildConfig
 import com.coinpulse.coinpulsegame.R
 import com.coinpulse.coinpulsegame.charter.Echo
 import com.coinpulse.coinpulsegame.charter.HostGate
-import com.coinpulse.coinpulsegame.pulsegate.EntryGate
+import com.coinpulse.coinpulsegame.MainActivity
 import com.coinpulse.coinpulsegame.relaynet.Wire
 import com.coinpulse.coinpulsegame.strongbox.Locker
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * by the Firebase SDK itself whenever the app is not in the foreground, and
  * this service is never called at all. That second shape is the one every real
  * user hits, and its tap opens the plain launcher intent with the data payload
- * attached as ordinary string extras — which is why [EntryGate] reads both
+ * attached as ordinary string extras — which is why [MainActivity] reads both
  * shapes rather than only its own.
  *
  * The rules for a URL, in order:
@@ -100,12 +100,12 @@ class PushGate : FirebaseMessagingService() {
     private suspend fun post(title: String, body: String, url: String, picture: String) {
         AlertLane.open(applicationContext)
 
-        val tap = Intent(applicationContext, EntryGate::class.java).apply {
+        val tap = Intent(applicationContext, MainActivity::class.java).apply {
             // No CLEAR_TOP: it would destroy the very shell this URL may be
             // handed to a moment later.
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            putExtra(EntryGate.EXTRA_CAME_FROM_PUSH, true)
-            if (url.isNotEmpty()) putExtra(EntryGate.EXTRA_PUSH_TARGET, url)
+            putExtra(MainActivity.EXTRA_CAME_FROM_PUSH, true)
+            if (url.isNotEmpty()) putExtra(MainActivity.EXTRA_PUSH_TARGET, url)
         }
         val pending = PendingIntent.getActivity(
             applicationContext,
