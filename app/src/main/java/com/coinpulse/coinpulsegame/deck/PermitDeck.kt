@@ -39,12 +39,15 @@ class PermitDeck : AppCompatActivity() {
     ) { granted ->
         when {
             granted -> locker.promptGranted = true
-            // A refusal the system will not show again is permanent; anything
-            // else is this user saying "not now".
+            // A refusal the system will not show again is permanent (two "Don't
+            // allow" taps on Android 13+, or the user hitting the app-info
+            // switch). Anything else is a soft "not now" — we do not snooze it
+            // because the screen belongs at every entry until the answer is
+            // final one way or the other, per the guide.
             !shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS) ->
                 locker.promptRefusedForGood = true
 
-            else -> locker.snoozePrompt()
+            else -> { /* soft deny: PermitDeck reappears on the next launch */ }
         }
         onward()
     }
@@ -74,10 +77,11 @@ class PermitDeck : AppCompatActivity() {
             setOnClickListener { onAllow() }
         }
         val skip = DeckArt.key(this, "Skip", DeckArt.Tone.SHADOW).apply {
-            setOnClickListener {
-                locker.snoozePrompt()
-                onward()
-            }
+            // Skip is "not this session", not "shut this off for days" — the
+            // deck belongs at every entry until the user grants the permission
+            // or the system marks it permanently refused. onward() takes the
+            // user past this screen for the current launch; nothing is saved.
+            setOnClickListener { onward() }
         }
         // The two buttons carry the same weight in this decision, so they sit
         // at the same size and the accept comes first — above the skip on a
@@ -126,9 +130,14 @@ class PermitDeck : AppCompatActivity() {
         handOverFlat()
     }
 
+    // Landscape stays exactly as it was — the row of 168×54 buttons at 11 % from
+    // the floor lines up with the plate above it and reads as designed. Portrait
+    // is the only case that changed: both stacked buttons grow to 200×60 and
+    // the stack itself is lifted well above the bottom edge so it clears the
+    // reels underneath instead of overlapping their glyphs.
     private fun keySize() = android.widget.LinearLayout.LayoutParams(
-        DeckArt.dp(this, 168f),
-        DeckArt.dp(this, 54f)
+        DeckArt.dp(this, if (DeckArt.landscape(this)) 168f else 200f),
+        DeckArt.dp(this, if (DeckArt.landscape(this)) 54f else 60f)
     )
 
     private fun rowPlacement(): FrameLayout.LayoutParams =
@@ -138,11 +147,8 @@ class PermitDeck : AppCompatActivity() {
             Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
         ).apply {
             val screenHeight = resources.displayMetrics.heightPixels
-            // Portrait sits the stack a little lower than the old single row
-            // so its top does not eat into the plate above it; landscape keeps
-            // the same clearance a horizontal row had.
             val ratio =
-                if (DeckArt.landscape(this@PermitDeck)) 0.11f else 0.055f
+                if (DeckArt.landscape(this@PermitDeck)) 0.11f else 0.13f
             bottomMargin = (screenHeight * ratio).toInt()
         }
 

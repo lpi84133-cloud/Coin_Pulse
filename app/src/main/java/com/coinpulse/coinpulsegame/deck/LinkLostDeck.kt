@@ -10,9 +10,7 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.coinpulse.coinpulsegame.MainActivity
 import com.coinpulse.coinpulsegame.R
-import com.coinpulse.coinpulsegame.charter.Echo
 import com.coinpulse.coinpulsegame.pulsegate.EntryGate
 import com.coinpulse.coinpulsegame.relaynet.LinkWatch
 import kotlinx.coroutines.CoroutineScope
@@ -31,8 +29,9 @@ import kotlinx.coroutines.launch
  * top rather than patched up in place, and that run is the first time the
  * tracker is asked anything.
  *
- * The game sits behind the second button. It needs no network at all, so a user
- * with no signal is never left with a dead end.
+ * There is a single control on this board: Retry. The board watches the radio
+ * itself and also leaves on its own the moment there is something to leave for,
+ * so a user who does nothing but wait for signal to come back is not stranded.
  */
 class LinkLostDeck : AppCompatActivity() {
 
@@ -61,20 +60,17 @@ class LinkLostDeck : AppCompatActivity() {
             )
         )
 
+        // Only one control — Retry — and controlLane still holds it because
+        // its gravity keeps the button centred in either orientation. A plain
+        // FrameLayout would work too, but the same helper is used for the
+        // permission board and keeping the two symmetric is the sort of thing
+        // that saves a future reader ten minutes.
         val lane = DeckArt.controlLane(this)
         val again = DeckArt.key(this, "Retry", DeckArt.Tone.GOLD).apply {
             setOnClickListener { attempt() }
         }
         retry = again
-        val offline = DeckArt.key(this, "Play offline", DeckArt.Tone.SHADOW).apply {
-            setOnClickListener { toGame() }
-        }
-        // Retry above Play offline on a phone, retry to the left of it in
-        // landscape — the two are the same size in both, so they read as a
-        // pair with no obvious primary and no obvious secondary.
         lane.addView(again, keySize())
-        lane.addView(DeckArt.gap(this, GAP_DP))
-        lane.addView(offline, keySize())
 
         board.addView(lane, rowPlacement())
         setContentView(board)
@@ -127,22 +123,12 @@ class LinkLostDeck : AppCompatActivity() {
         }
     }
 
-    private fun toGame() {
-        Echo.note(TAG, "offline board → game")
-        leaving = true
-        startActivity(
-            Intent(this, MainActivity::class.java)
-                .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
-        )
-        finish()
-        handOverFlat()
-    }
-
-    // "Play offline" is the wider label, so both buttons take the width it
-    // needs and nothing has to be re-measured to make them look like a pair.
+    // Landscape stays the width the pair used to take, so a single button sits
+    // where the row's centre-line was and the composition does not shift.
+    // Portrait grows the button and lifts it well above the reels below.
     private fun keySize() = LinearLayout.LayoutParams(
-        DeckArt.dp(this, 196f),
-        DeckArt.dp(this, 54f)
+        DeckArt.dp(this, if (DeckArt.landscape(this)) 196f else 200f),
+        DeckArt.dp(this, if (DeckArt.landscape(this)) 54f else 60f)
     )
 
     private fun rowPlacement(): FrameLayout.LayoutParams =
@@ -153,7 +139,7 @@ class LinkLostDeck : AppCompatActivity() {
         ).apply {
             val screenHeight = resources.displayMetrics.heightPixels
             val ratio =
-                if (DeckArt.landscape(this@LinkLostDeck)) 0.11f else 0.055f
+                if (DeckArt.landscape(this@LinkLostDeck)) 0.11f else 0.13f
             bottomMargin = (screenHeight * ratio).toInt()
         }
 
@@ -169,7 +155,5 @@ class LinkLostDeck : AppCompatActivity() {
 
     companion object {
         const val EXTRA_RETURN_URL = "return_url"
-        private const val TAG = "LinkLostDeck"
-        private const val GAP_DP = 16f
     }
 }
