@@ -37,20 +37,13 @@ class PermitDeck : AppCompatActivity() {
     private val ask = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
-        when {
-            granted -> locker.promptGranted = true
-            // A refusal the system will not show again is permanent (two "Don't
-            // allow" taps on Android 13+, or the user hitting the app-info
-            // switch): fix the answer forever.
-            !shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS) ->
-                locker.promptRefusedForGood = true
-
-            // A soft "not now" from the OS dialog is treated the same as tapping
-            // Skip on this board: quiet for a few days and then the deck offers
-            // the choice again. Without this the screen would come back on the
-            // very next entry and that reads as a nag.
-            else -> locker.snoozePrompt()
-        }
+        // Tapping Allow on this board is the user actively opting into the
+        // decision: they asked to be shown the system dialog. Whatever answer
+        // they give the OS from there is the final one — granted or not. The
+        // board is not shown again after this, and only tapping Skip (which
+        // never opens the OS dialog) uses the snooze window.
+        if (granted) locker.promptGranted = true
+        else locker.promptRefusedForGood = true
         onward()
     }
 
