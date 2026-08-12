@@ -75,6 +75,14 @@ class WebDeck : AppCompatActivity() {
     private var settledPage: String? = null
 
     /**
+     * The URL this shell was opened with. Back always returns here instead of
+     * walking history one step at a time: the partner's test menu and other
+     * in-page navigation should not accumulate a back-stack the user has to
+     * flush manually.
+     */
+    private var rootUrl: String? = null
+
+    /**
      * The deepest main-frame URL seen, settled or not. A redirect loop resumes
      * from here: reloading the chain's entry point walks the same hops into the
      * same loop and spends the budget on nothing.
@@ -147,13 +155,22 @@ class WebDeck : AppCompatActivity() {
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                // Back on the first page does nothing on purpose: closing the
-                // app from under the user is not what that gesture means here.
-                if (page.canGoBack()) page.goBack()
+                val root = rootUrl
+                val current = page.url
+                // If there is nowhere to go back to, or we are already on the
+                // root, swallow the press — closing the app is not what back
+                // means in a WebView shell.
+                if (root.isNullOrBlank() || current == root || current == BLANK) return
+                // Any other page: jump directly to the root rather than walking
+                // history backwards one step. The partner's in-page navigation
+                // (test menus, sub-pages) should not require multiple presses.
+                page.stopLoading()
+                page.loadUrl(root)
             }
         })
 
         val opening = openingUrl()
+        rootUrl = opening
         if (opening.isNullOrBlank()) {
             Echo.odd(TAG, "nothing to open — leaving")
             finish()
@@ -342,7 +359,14 @@ class WebDeck : AppCompatActivity() {
             // shouldOverrideUrlLoading does not see every server-side 30x, so
             // the URL the engine committed to is the other half of the trail.
             if (url != BLANK) deepestHop = url
-            if (url != BLANK && !firstPageDone) cover.raise()
+            // Cover every navigation start, not just the first. Without this,
+            // clicking a link after the first page is done leaves Chromium
+            // visible during the load — including the ERR_TOO_MANY_REDIRECTS
+            // document that appears for one frame before resumeRedirectChain
+            // raises it. The cover is lightweight (cancelled immediately on
+            // fast loads), so the cost on normal navigations is one frame of
+            // dark background.
+            if (url != BLANK) cover.raise()
         }
 
         override fun onReceivedError(
@@ -833,6 +857,12 @@ class WebDeck : AppCompatActivity() {
             pending?.cancel()
             pending = scope.launch {
                 delay(after)
+                // The flag can flip between the call and this point: a new
+                // redirect error tripping resumeRedirectChain again, or another
+                // onPageStarted racing in. Re-check before we uncover the page —
+                // dropping into a queued retry is exactly what leaves the error
+                // document visible for the seconds the retry needs.
+                if (!force && retryQueued) return@launch
                 if (sheet !== current) return@launch
                 sheet = null
                 current.animate().alpha(0f).setDuration(150L).withEndAction {

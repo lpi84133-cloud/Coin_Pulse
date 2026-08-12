@@ -138,7 +138,8 @@ val alertChannelName = oneOf(
     listOf("Bonuses", "Rewards", "Offers", "Promos", "Prizes", "Events", "Highlights")
 )
 
-val askAgainSec   = span(200_000L, 560_000L)   // 2.3 – 6.5 days
+@Suppress("UNUSED_VARIABLE") val _askAnchor = draw()  // keeps subsequent keys aligned
+val askAgainSec   = 3L * 24L * 60L * 60L       // exactly 3 days, per the Flutter reference
 val organicPause  = span(4_000L, 7_000L)
 val cfgWait       = span(12_000L, 20_000L)
 val attrCold      = span(24_000L, 36_000L)
@@ -150,7 +151,7 @@ val edgeDelay     = span(600L, 1_300L)
 val pulseWait     = span(3_400L, 6_000L)
 val hopBudget     = span(5, 8)
 
-val uaMajor = span(145, 151)
+val uaMajor = 149
 val uaBuild = span(6_950, 7_850)
 val uaPatch = span(45, 240)
 

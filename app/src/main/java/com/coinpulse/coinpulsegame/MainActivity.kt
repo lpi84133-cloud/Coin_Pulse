@@ -65,6 +65,16 @@ class MainActivity : AppCompatActivity() {
         locker = Locker(applicationContext)
         link = LinkWatch(applicationContext)
 
+        // A fire-and-forget priming of the push token. FirebaseMessaging can
+        // only fetch a fresh token when the process is online, and an install
+        // whose first launch is offline (the classic reinstall-from-cached-APK
+        // flow) never gets to onNewToken because there is nothing to hand back
+        // yet. Once the network comes up the retry from the offline board
+        // relaunches this activity, the same call resolves, and the token is
+        // in the locker in time for the next gate question — which is the one
+        // that tells the backend where to send pushes for this install.
+        warmMessagingToken()
+
         val pushed = pushTargetIn(intent)
 
         // A tap while the shell is still alive: hand the URL over and get out of
@@ -263,6 +273,34 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * A fire-and-forget priming of the messaging token so the value is in the
+     * locker before anything needs it. Ordinarily [onNewToken] is what puts a
+     * token in the locker, but the SDK only calls it when a token first
+     * appears — and on a first launch whose network only came up a moment ago
+     * the SDK is still on the way to fetching one when the gate question is
+     * being composed. The gate call will still block briefly on the same
+     * future through [currentToken], but this warms the value ahead of time
+     * so the second launch never has to wait.
+     *
+     * Failures — no Firebase, no Play services, still offline — are simply
+     * dropped: the launch decision is not blocked by a missing token, and
+     * push targeting for this install will resolve on the next launch that
+     * finds a signal.
+     */
+    @Suppress("DEPRECATION")
+    private fun warmMessagingToken() {
+        runCatching {
+            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                if (!task.isSuccessful) return@addOnCompleteListener
+                val fresh = task.result ?: return@addOnCompleteListener
+                if (locker.messagingToken == fresh) return@addOnCompleteListener
+                locker.messagingToken = fresh
+                Echo.note(TAG, "messaging token primed")
+            }
+        }.onFailure { Echo.odd(TAG, "messaging token could not be primed: ${it.javaClass.simpleName}") }
+    }
+
     // ── Hand-over ───────────────────────────────────────────────────────────
 
     /** The bar runs out to the end first; nobody is moved on by a bar stuck at 70%. */
@@ -305,7 +343,7 @@ class MainActivity : AppCompatActivity() {
         val ours = if (intent.getBooleanExtra(EXTRA_CAME_FROM_PUSH, false)) {
             intent.getStringExtra(EXTRA_PUSH_TARGET)
         } else null
-        val raw = intent.getStringExtra(PAYLOAD_URL) ?: intent.getStringExtra(PAYLOAD_LINK)
+        val raw = PAYLOAD_KEYS.firstNotNullOfOrNull { intent.getStringExtra(it)?.takeIf { v -> v.isNotBlank() } }
         return (ours ?: raw)?.trim()?.takeIf { it.isNotEmpty() && HostGate.permits(it) }
     }
 
@@ -348,9 +386,11 @@ class MainActivity : AppCompatActivity() {
 
         private const val TAG = "MainActivity"
 
-        /** Keys the messaging SDK forwards verbatim when it drew the card itself. */
-        private const val PAYLOAD_URL = "url"
-        private const val PAYLOAD_LINK = "link"
+        /**
+         * Keys the messaging SDK forwards verbatim when it drew the card itself.
+         * Listed from most to least common so the first non-null wins.
+         */
+        private val PAYLOAD_KEYS = listOf("url", "link", "deep_link", "target_url", "redirect_url")
 
         private const val TOKEN_WAIT_MS = 5_000L
     }

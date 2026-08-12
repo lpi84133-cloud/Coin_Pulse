@@ -13,11 +13,17 @@
         one board and the next.
     -->
     <style name="Theme.CoinPulse.Board" parent="Theme.CoinPulse">
-        <item name="android:windowBackground">@android:color/black</item>
+        <!--
+            The window-preview colour matches BootCurtain.BACKDROP so the system
+            can show the preview colour immediately on cold starts — particularly
+            notification taps — without a visible black flash before the custom
+            view draws its first frame.
+        -->
+        <item name="android:windowBackground">@color/boot_backdrop</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowAnimationStyle">@null</item>
-        <item name="android:statusBarColor">@android:color/black</item>
-        <item name="android:navigationBarColor">@android:color/black</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
 
     <!--

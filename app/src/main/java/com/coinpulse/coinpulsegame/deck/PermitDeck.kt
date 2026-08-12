@@ -41,13 +41,15 @@ class PermitDeck : AppCompatActivity() {
             granted -> locker.promptGranted = true
             // A refusal the system will not show again is permanent (two "Don't
             // allow" taps on Android 13+, or the user hitting the app-info
-            // switch). Anything else is a soft "not now" — we do not snooze it
-            // because the screen belongs at every entry until the answer is
-            // final one way or the other, per the guide.
+            // switch): fix the answer forever.
             !shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS) ->
                 locker.promptRefusedForGood = true
 
-            else -> { /* soft deny: PermitDeck reappears on the next launch */ }
+            // A soft "not now" from the OS dialog is treated the same as tapping
+            // Skip on this board: quiet for a few days and then the deck offers
+            // the choice again. Without this the screen would come back on the
+            // very next entry and that reads as a nag.
+            else -> locker.snoozePrompt()
         }
         onward()
     }
@@ -77,11 +79,14 @@ class PermitDeck : AppCompatActivity() {
             setOnClickListener { onAllow() }
         }
         val skip = DeckArt.key(this, "Skip", DeckArt.Tone.SHADOW).apply {
-            // Skip is "not this session", not "shut this off for days" — the
-            // deck belongs at every entry until the user grants the permission
-            // or the system marks it permanently refused. onward() takes the
-            // user past this screen for the current launch; nothing is saved.
-            setOnClickListener { onward() }
+            // Skip quiets the deck for a snooze window (a few days, per the
+            // build's ASK_AGAIN_SEC). Showing it on every entry the way an
+            // "always ask" would is the sort of nag that trains users to
+            // reflex-skip past the actual system dialog next time.
+            setOnClickListener {
+                locker.snoozePrompt()
+                onward()
+            }
         }
         // The two buttons carry the same weight in this decision, so they sit
         // at the same size and the accept comes first — above the skip on a
