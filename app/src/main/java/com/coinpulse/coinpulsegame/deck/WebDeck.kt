@@ -72,14 +72,6 @@ class WebDeck : AppCompatActivity() {
     private var settledPage: String? = null
 
     /**
-     * The URL this shell was opened with. Back always returns here instead of
-     * walking history one step at a time: the partner's test menu and other
-     * in-page navigation should not accumulate a back-stack the user has to
-     * flush manually.
-     */
-    private var rootUrl: String? = null
-
-    /**
      * The deepest main-frame URL seen, settled or not. A redirect loop resumes
      * from here: reloading the chain's entry point walks the same hops into the
      * same loop and spends the budget on nothing.
@@ -139,22 +131,17 @@ class WebDeck : AppCompatActivity() {
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                val root = rootUrl
-                val current = page.url
-                // If there is nowhere to go back to, or we are already on the
-                // root, swallow the press — closing the app is not what back
-                // means in a WebView shell.
-                if (root.isNullOrBlank() || current == root || current == BLANK) return
-                // Any other page: jump directly to the root rather than walking
-                // history backwards one step. The partner's in-page navigation
-                // (test menus, sub-pages) should not require multiple presses.
-                page.stopLoading()
-                page.loadUrl(root)
+                // One step at a time through the WebView's own history, the
+                // way the Flutter reference does it: canGoBack() gates the
+                // move, and the first page swallows the press so the shell
+                // does not close under the user. Sub-pages and test menus
+                // therefore step back naturally rather than jumping to the
+                // entry URL on a single press.
+                if (page.canGoBack()) page.goBack()
             }
         })
 
         val opening = openingUrl()
-        rootUrl = opening
         if (opening.isNullOrBlank()) {
             Echo.odd(TAG, "nothing to open — leaving")
             finish()
