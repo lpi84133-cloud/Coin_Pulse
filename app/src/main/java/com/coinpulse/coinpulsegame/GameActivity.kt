@@ -1,18 +1,11 @@
 package com.coinpulse.coinpulsegame
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import com.coinpulse.coinpulsegame.audio.SoundManager
 import com.coinpulse.coinpulsegame.data.GameStore
@@ -26,10 +19,6 @@ import com.coinpulse.coinpulsegame.screens.ProfileScreen
 import com.coinpulse.coinpulsegame.screens.SettingsScreen
 import com.coinpulse.coinpulsegame.screens.UpgradesScreen
 import com.coinpulse.coinpulsegame.ui.D
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.File
 
 class GameActivity : AppCompatActivity(), Nav {
 
@@ -37,20 +26,6 @@ class GameActivity : AppCompatActivity(), Nav {
 
     private lateinit var root: FrameLayout
     private var currentGame: GameScreen? = null
-
-    // ---- Avatar launchers ----
-    private val pickImage = registerForActivityResult(
-        ActivityResultContracts.PickVisualMedia()
-    ) { uri -> if (uri != null) saveAvatarFromUri(uri) }
-
-    private var cameraTargetUri: Uri? = null
-    private val takePicture = registerForActivityResult(
-        ActivityResultContracts.TakePicture()
-    ) { success -> if (success) cameraTargetUri?.let { saveAvatarFromUri(it) } }
-
-    private val requestCamera = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted -> if (granted) launchCamera() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -111,50 +86,5 @@ class GameActivity : AppCompatActivity(), Nav {
         i.putExtra(WebViewActivity.EXTRA_LOCAL, fileName)
         i.putExtra(WebViewActivity.EXTRA_ONLINE, onlineUrl)
         startActivity(i)
-    }
-
-    override fun pickAvatarFromGallery() {
-        pickImage.launch(androidx.activity.result.PickVisualMediaRequest(
-            ActivityResultContracts.PickVisualMedia.ImageOnly))
-    }
-
-    override fun captureAvatarFromCamera() {
-        if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            launchCamera()
-        } else {
-            requestCamera.launch(Manifest.permission.CAMERA)
-        }
-    }
-
-    private fun launchCamera() {
-        val dir = File(cacheDir, "camera").apply { mkdirs() }
-        val file = File(dir, "capture_${System.currentTimeMillis()}.jpg")
-        val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
-        cameraTargetUri = uri
-        takePicture.launch(uri)
-    }
-
-    private fun saveAvatarFromUri(uri: Uri) {
-        lifecycleScope.launch {
-            val path = withContext(Dispatchers.IO) {
-                try {
-                    val src = contentResolver.openInputStream(uri).use { input ->
-                        BitmapFactory.decodeStream(input)
-                    } ?: return@withContext null
-                    val size = 256
-                    val scaled = Bitmap.createScaledBitmap(src, size, size, true)
-                    val dir = File(filesDir, "avatar").apply { mkdirs() }
-                    val out = File(dir, "avatar.jpg")
-                    out.outputStream().use { scaled.compress(Bitmap.CompressFormat.JPEG, 90, it) }
-                    out.absolutePath
-                } catch (e: Exception) {
-                    null
-                }
-            }
-            if (path != null) {
-                App.store.avatarPath = path
-                toProfile()
-            }
-        }
     }
 }

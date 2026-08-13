@@ -7,14 +7,6 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Normal permission: haptic feedback on hits, toggleable in Settings. -->
     <uses-permission android:name="android.permission.VIBRATE" />
-    <!--
-        The profile avatar can be taken with the camera, and the game asks for
-        this before it launches the capture. Undeclared, that request is denied
-        without ever reaching the user and the button does nothing.
-    -->
-    <uses-permission android:name="android.permission.CAMERA" />
-
-    <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <!--
         Package visibility for the links a page can offer: wallets, banks and
@@ -120,14 +112,5 @@
             </intent-filter>
         </service>
 
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths" />
-        </provider>
     </application>
 </manifest>

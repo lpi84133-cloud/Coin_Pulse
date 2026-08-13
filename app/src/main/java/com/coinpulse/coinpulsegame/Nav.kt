@@ -13,6 +13,4 @@ interface Nav {
     fun toSettings()
     fun toProfile()
     fun openWeb(fileName: String, onlineUrl: String)
-    fun pickAvatarFromGallery()
-    fun captureAvatarFromCamera()
 }

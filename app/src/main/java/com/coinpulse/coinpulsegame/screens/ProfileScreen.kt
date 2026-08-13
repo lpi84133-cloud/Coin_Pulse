@@ -3,7 +3,6 @@ package com.coinpulse.coinpulsegame.screens
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.BitmapShader
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -18,12 +17,10 @@ import com.coinpulse.coinpulsegame.Nav
 import com.coinpulse.coinpulsegame.ui.C
 import com.coinpulse.coinpulsegame.ui.D
 import com.coinpulse.coinpulsegame.ui.F
-import com.coinpulse.coinpulsegame.ui.NeonButton
 import com.coinpulse.coinpulsegame.ui.bodyText
 import com.coinpulse.coinpulsegame.ui.cardBg
 import com.coinpulse.coinpulsegame.ui.titleText
 import com.coinpulse.coinpulsegame.ui.valueText
-import java.io.File
 import kotlin.math.min
 
 @SuppressLint("ViewConstructor")
@@ -50,7 +47,7 @@ class ProfileScreen(context: Context, nav: Nav) : BaseScreen(context, nav, "Prof
 
         val size = D.dp(context, 108f)
         card.addView(ImageView(context).apply {
-            setImageBitmap(circleBitmap(loadAvatar(), size))
+            setImageBitmap(circleBitmap(assets.playerCoinDefault, size))
             layoutParams = LinearLayout.LayoutParams(size, size)
         })
 
@@ -72,24 +69,6 @@ class ProfileScreen(context: Context, nav: Nav) : BaseScreen(context, nav, "Prof
             D.dp(context, 178f), LinearLayout.LayoutParams.WRAP_CONTENT
         ).apply { topMargin = D.dp(context, 12f) })
 
-        val btns = LinearLayout(context).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply { topMargin = D.dp(context, 12f) }
-        }
-        btns.addView(NeonButton(context, "Gallery", NeonButton.Style.SECONDARY).apply {
-            onClick = { nav.pickAvatarFromGallery() }
-            layoutParams = LinearLayout.LayoutParams(D.dp(context, 104f), D.dp(context, 46f)).apply {
-                marginEnd = D.dp(context, 8f)
-            }
-        })
-        btns.addView(NeonButton(context, "Camera", NeonButton.Style.SECONDARY).apply {
-            onClick = { nav.captureAvatarFromCamera() }
-            layoutParams = LinearLayout.LayoutParams(D.dp(context, 104f), D.dp(context, 46f))
-        })
-        card.addView(btns)
         return card
     }
 
@@ -122,13 +101,6 @@ class ProfileScreen(context: Context, nav: Nav) : BaseScreen(context, nav, "Prof
             LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         row.addView(valueText(context, value, 15f, color))
         return row
-    }
-
-    private fun loadAvatar(): Bitmap {
-        store.avatarPath?.let { path ->
-            if (File(path).exists()) BitmapFactory.decodeFile(path)?.let { return it }
-        }
-        return assets.playerCoinDefault
     }
 
     private fun circleBitmap(src: Bitmap, size: Int): Bitmap {

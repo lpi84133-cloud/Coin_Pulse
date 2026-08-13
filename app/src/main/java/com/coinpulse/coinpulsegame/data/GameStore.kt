@@ -62,11 +62,6 @@ class GameStore(context: Context) {
         get() = sp.getBoolean("tutorial", false)
         set(v) = sp.edit().putBoolean("tutorial", v).apply()
 
-    // ---- Avatar ----
-    var avatarPath: String?
-        get() = sp.getString("avatar", null)
-        set(v) = sp.edit().putString("avatar", v).apply()
-
     // ---- Player name ----
     var playerName: String
         get() = sp.getString("name", "Pulse Runner") ?: "Pulse Runner"

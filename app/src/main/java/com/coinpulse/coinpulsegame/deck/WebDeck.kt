@@ -10,7 +10,6 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore
 import android.view.Gravity
 import android.view.View
 import android.view.WindowInsets
@@ -28,7 +27,6 @@ import android.widget.ProgressBar
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.FileProvider
 import com.coinpulse.coinpulsegame.BuildConfig
 import com.coinpulse.coinpulsegame.charter.Agent
 import com.coinpulse.coinpulsegame.charter.Charter
@@ -43,7 +41,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.io.File
 
 /**
  * The shell the page lives in.
@@ -102,29 +99,16 @@ class WebDeck : AppCompatActivity() {
 
     private var chooser: ValueCallback<Array<Uri>>? = null
 
-    /**
-     * A capture URI that was handed to the camera activity as EXTRA_OUTPUT.
-     * If the user shoots a photo, the camera writes to this URI and returns a
-     * result with a null data intent, so parseResult would come back empty and
-     * strand the page waiting on nothing. Keeping the URI on this side lets
-     * the result handler recognise the "camera took the shot" case.
-     */
-    private var pendingCapture: Uri? = null
-
     private val filePicker = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         val waiting = chooser ?: return@registerForActivityResult
         chooser = null
-        val capture = pendingCapture
-        pendingCapture = null
 
-        val uris: Array<Uri> = when {
-            result.resultCode != Activity.RESULT_OK -> emptyArray()
-            // Camera path: the intent that came back has neither data nor a
-            // clip — the file was written to the URI we passed in.
-            result.data == null && capture != null -> arrayOf(capture)
-            else -> WebChromeClient.FileChooserParams.parseResult(
+        val uris: Array<Uri> = if (result.resultCode != Activity.RESULT_OK) {
+            emptyArray()
+        } else {
+            WebChromeClient.FileChooserParams.parseResult(
                 result.resultCode, result.data
             ) ?: emptyArray()
         }
@@ -455,14 +439,12 @@ class WebDeck : AppCompatActivity() {
         ): Boolean {
             chooser?.onReceiveValue(arrayOf())
             chooser = callback
-            pendingCapture = null
             return runCatching {
                 filePicker.launch(assemblePicker(params))
                 true
             }.getOrElse { failure ->
                 Echo.odd(TAG, "file picker refused to launch: ${failure.javaClass.simpleName}")
                 chooser = null
-                pendingCapture = null
                 false
             }
         }
@@ -476,9 +458,10 @@ class WebDeck : AppCompatActivity() {
      * for, but partner pages routinely ask for something so narrow — no MIME
      * types at all, or an odd single one — that the picker opens with nothing
      * to show and the user gives up.  This builds an ACTION_GET_CONTENT intent
-     * with a broadened MIME list (so the "Files" picker always has something)
-     * and, when the page will accept an image, layers in an initial camera
-     * intent so a user can take a photo without ever entering the gallery.
+     * with a broadened MIME list so the system Files picker always has
+     * something to offer. The shell never launches the camera itself: doing
+     * so would need the CAMERA permission and a FileProvider that a
+     * privacy-minded release intentionally does not carry.
      */
     private fun assemblePicker(params: WebChromeClient.FileChooserParams): Intent {
         val types = params.acceptTypes.orEmpty().filter { it.isNotBlank() }
@@ -497,49 +480,8 @@ class WebDeck : AppCompatActivity() {
             }
         }
 
-        val wantsImage = types.isEmpty() ||
-            types.any { it == "*/*" || it.startsWith("image/") }
-        val extras = mutableListOf<Intent>()
-        if (wantsImage) {
-            val target = newCaptureUri()
-            if (target != null) {
-                pendingCapture = target
-                extras.add(Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
-                    putExtra(MediaStore.EXTRA_OUTPUT, target)
-                    addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                })
-            }
-        }
-
-        val chooserIntent = Intent.createChooser(content, params.title)
-        if (extras.isNotEmpty()) {
-            chooserIntent.putExtra(
-                Intent.EXTRA_INITIAL_INTENTS,
-                extras.toTypedArray()
-            )
-        }
-        return chooserIntent
+        return Intent.createChooser(content, params.title)
     }
-
-    /**
-     * A fresh file under the cache "camera" root, wrapped by the FileProvider
-     * declared in the manifest.  Cache is the right place: these captures are
-     * temporary — either the page consumes them and stops caring, or the user
-     * closes the picker and the OS clears them out on its next sweep.
-     */
-    private fun newCaptureUri(): Uri? = runCatching {
-        val dir = File(cacheDir, "camera").apply { mkdirs() }
-        val file = File(dir, "cap_${System.currentTimeMillis()}.jpg")
-        if (!file.createNewFile() && !file.exists()) return@runCatching null
-        FileProvider.getUriForFile(
-            this@WebDeck,
-            "$packageName.fileprovider",
-            file
-        )
-    }.onFailure {
-        Echo.odd(TAG, "capture target could not be prepared: ${it.javaClass.simpleName}")
-    }.getOrNull()
 
     // ── Redirect chains ─────────────────────────────────────────────────────
 
