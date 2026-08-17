@@ -92,14 +92,14 @@
             android:theme="@style/Theme.CoinPulse.Board" />
 
         <activity
-            android:name=".GameActivity"
+            android:name=".HubActivity"
             android:exported="false"
             android:screenOrientation="sensorLandscape"
             android:configChanges="orientation|screenSize|keyboardHidden|screenLayout"
             android:launchMode="singleTop" />
 
         <activity
-            android:name=".WebViewActivity"
+            android:name=".DocsActivity"
             android:exported="false"
             android:screenOrientation="sensorLandscape"
             android:configChanges="orientation|screenSize|keyboardHidden|screenLayout" />

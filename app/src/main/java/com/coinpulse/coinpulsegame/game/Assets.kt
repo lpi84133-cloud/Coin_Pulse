@@ -3,7 +3,7 @@ package com.coinpulse.coinpulsegame.game
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import com.coinpulse.coinpulsegame.audio.SoundManager
+import com.coinpulse.coinpulsegame.audio.SfxBank
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -11,7 +11,7 @@ import kotlinx.coroutines.withContext
  * Loads every sprite / background from /assets and preloads all SFX.
  * Reports honest progress: one tick per real decode/preload task.
  */
-class Assets(private val context: Context, private val sound: SoundManager) {
+class Assets(private val context: Context, private val sound: SfxBank) {
 
     private val am = context.assets
     private val cache = HashMap<String, Bitmap>()

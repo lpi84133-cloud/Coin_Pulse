@@ -8,11 +8,11 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.coinpulse.coinpulsegame.BuildConfig
 import com.coinpulse.coinpulsegame.R
-import com.coinpulse.coinpulsegame.charter.Echo
-import com.coinpulse.coinpulsegame.charter.HostGate
+import com.coinpulse.coinpulsegame.bylaw.Echo
+import com.coinpulse.coinpulsegame.bylaw.HostGate
 import com.coinpulse.coinpulsegame.MainActivity
 import com.coinpulse.coinpulsegame.relaynet.Wire
-import com.coinpulse.coinpulsegame.strongbox.Locker
+import com.coinpulse.coinpulsegame.coffer.Locker
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.CoroutineScope

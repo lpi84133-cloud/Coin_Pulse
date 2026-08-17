@@ -5,10 +5,10 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.coinpulse.coinpulsegame.BuildConfig
 import com.coinpulse.coinpulsegame.pulsegate.PulseApp
-import com.coinpulse.coinpulsegame.charter.Charter
-import com.coinpulse.coinpulsegame.charter.Echo
-import com.coinpulse.coinpulsegame.charter.HostGate
-import com.coinpulse.coinpulsegame.charter.RouteVerdict
+import com.coinpulse.coinpulsegame.bylaw.Bylaw
+import com.coinpulse.coinpulsegame.bylaw.Echo
+import com.coinpulse.coinpulsegame.bylaw.HostGate
+import com.coinpulse.coinpulsegame.bylaw.RouteVerdict
 import com.coinpulse.coinpulsegame.deck.BootCurtain
 import com.coinpulse.coinpulsegame.deck.EdgeFit
 import com.coinpulse.coinpulsegame.deck.handOverFlat
@@ -18,7 +18,7 @@ import com.coinpulse.coinpulsegame.deck.WebDeck
 import com.coinpulse.coinpulsegame.dispatchbox.LiveLink
 import com.coinpulse.coinpulsegame.relaynet.LinkWatch
 import com.coinpulse.coinpulsegame.relaynet.RouteAsk
-import com.coinpulse.coinpulsegame.strongbox.Locker
+import com.coinpulse.coinpulsegame.coffer.Locker
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -121,7 +121,7 @@ class MainActivity : AppCompatActivity() {
     // ── The decision ────────────────────────────────────────────────────────
 
     private suspend fun decide() {
-        val forced = Charter.forcedUrl
+        val forced = Bylaw.forcedUrl
         if (BuildConfig.DEBUG && forced.isNotBlank()) {
             Echo.odd(TAG, "debug build with a forced URL — skipping the whole decision")
             toPage(forced)
@@ -146,7 +146,7 @@ class MainActivity : AppCompatActivity() {
     private suspend fun firstRun() {
         if (!waitForLink(firstEver = true)) return
 
-        val origin = askWhereFrom(Charter.Wait.coldAttribution)
+        val origin = askWhereFrom(Bylaw.Wait.coldAttribution)
         when (val verdict = RouteAsk.put(question(origin))) {
             is RouteVerdict.Handover -> {
                 locker.lane = Locker.Lane.STREAM
@@ -184,7 +184,7 @@ class MainActivity : AppCompatActivity() {
         if (!waitForLink(firstEver = false)) return
 
         val saved = if (locker.targetUsable()) locker.target else null
-        val origin = askWhereFrom(Charter.Wait.warmAttribution)
+        val origin = askWhereFrom(Bylaw.Wait.warmAttribution)
 
         when (val verdict = RouteAsk.put(question(origin))) {
             is RouteVerdict.Handover -> {
@@ -247,7 +247,7 @@ class MainActivity : AppCompatActivity() {
     private suspend fun waitForLink(firstEver: Boolean): Boolean {
         if (link.up()) return true
 
-        val restored = withTimeoutOrNull(Charter.Wait.connectionGrace) {
+        val restored = withTimeoutOrNull(Bylaw.Wait.connectionGrace) {
             link.changes.first { it }
         }
         if (restored == true) return true
@@ -311,7 +311,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun toGame() = handOver {
         startActivity(
-            Intent(this, GameActivity::class.java)
+            Intent(this, HubActivity::class.java)
                 .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
         )
         finish()

@@ -14,13 +14,12 @@
 
 # ── Entry points the system creates by name ──────────────────────────────────
 -keep class com.coinpulse.coinpulsegame.pulsegate.PulseApp
--keep class com.coinpulse.coinpulsegame.pulsegate.EntryGate
 -keep class com.coinpulse.coinpulsegame.dispatchbox.PushGate
 -keep class com.coinpulse.coinpulsegame.deck.WebDeck
 -keep class com.coinpulse.coinpulsegame.deck.PermitDeck
 -keep class com.coinpulse.coinpulsegame.deck.LinkLostDeck
 -keep class com.coinpulse.coinpulsegame.MainActivity
--keep class com.coinpulse.coinpulsegame.WebViewActivity
+-keep class com.coinpulse.coinpulsegame.DocsActivity
 
 # ── Firebase ─────────────────────────────────────────────────────────────────
 -keep class com.google.firebase.** { *; }
@@ -39,4 +38,16 @@
 -assumenosideeffects class android.util.Log {
     public static *** d(...);
     public static *** v(...);
+}
+
+# The guard inside Echo stops the write, but it does not remove the call, and
+# the message is an argument at the call site: without this the shipped DEX
+# still carries every line the shell would have printed — which lane an install
+# settled into, what the endpoint was asked, which URL came back — readable with
+# `strings` by anyone holding the APK. Declaring the calls free of side effects
+# lets R8 delete them, and the literals go with them.
+-assumenosideeffects class com.coinpulse.coinpulsegame.bylaw.Echo {
+    *** note(...);
+    *** odd(...);
+    *** bad(...);
 }

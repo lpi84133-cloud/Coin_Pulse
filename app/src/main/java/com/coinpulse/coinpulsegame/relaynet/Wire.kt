@@ -1,7 +1,7 @@
 package com.coinpulse.coinpulsegame.relaynet
 
-import com.coinpulse.coinpulsegame.charter.Agent
-import com.coinpulse.coinpulsegame.charter.Echo
+import com.coinpulse.coinpulsegame.bylaw.Agent
+import com.coinpulse.coinpulsegame.bylaw.Echo
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.net.HttpURLConnection

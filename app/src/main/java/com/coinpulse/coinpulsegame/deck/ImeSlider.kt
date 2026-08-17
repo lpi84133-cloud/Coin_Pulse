@@ -10,7 +10,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsAnimationCompat
 import androidx.core.view.WindowInsetsCompat
 import com.coinpulse.coinpulsegame.BuildConfig
-import com.coinpulse.coinpulsegame.strongbox.Locker
+import com.coinpulse.coinpulsegame.coffer.Locker
 
 /**
  * Keeps the focused field clear of the keyboard by sliding the page, never by

@@ -16,3 +16,7 @@
 # Seed and credentials — never commit these
 /pulse.properties
 /app/google-services.json
+
+# Portfolio inventory snapshots — local audit artefacts
+/_portfolio_*
+/_apk_extract/

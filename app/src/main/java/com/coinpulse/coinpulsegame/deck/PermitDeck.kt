@@ -14,7 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.coinpulse.coinpulsegame.R
-import com.coinpulse.coinpulsegame.strongbox.Locker
+import com.coinpulse.coinpulsegame.coffer.Locker
 
 /**
  * The board that asks for notifications, shown once the launch has decided on

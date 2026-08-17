@@ -15,7 +15,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.DrawableRes
-import com.coinpulse.coinpulsegame.charter.Echo
+import com.coinpulse.coinpulsegame.bylaw.Echo
 
 /**
  * The shared look of the three full-screen boards — the splash, the no-signal

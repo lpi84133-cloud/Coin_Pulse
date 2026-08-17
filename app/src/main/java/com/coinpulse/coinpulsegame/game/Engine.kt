@@ -1,7 +1,7 @@
 package com.coinpulse.coinpulsegame.game
 
 import android.graphics.Bitmap
-import com.coinpulse.coinpulsegame.audio.SoundManager
+import com.coinpulse.coinpulsegame.audio.SfxBank
 import com.coinpulse.coinpulsegame.data.GameStore
 import com.coinpulse.coinpulsegame.data.Upgrade
 import com.coinpulse.coinpulsegame.ui.C
@@ -18,7 +18,7 @@ import kotlin.random.Random
 class Engine(
     private val store: GameStore,
     private val assets: Assets,
-    private val sound: SoundManager,
+    private val sound: SfxBank,
 ) {
 
     // ---------- callbacks ----------

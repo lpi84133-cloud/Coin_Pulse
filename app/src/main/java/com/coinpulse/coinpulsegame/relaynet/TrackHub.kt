@@ -8,9 +8,9 @@ import com.appsflyer.AppsFlyerLib
 import com.appsflyer.deeplink.DeepLinkListener
 import com.appsflyer.deeplink.DeepLinkResult
 import com.coinpulse.coinpulsegame.BuildConfig
-import com.coinpulse.coinpulsegame.charter.Agent
-import com.coinpulse.coinpulsegame.charter.Charter
-import com.coinpulse.coinpulsegame.charter.Echo
+import com.coinpulse.coinpulsegame.bylaw.Agent
+import com.coinpulse.coinpulsegame.bylaw.Bylaw
+import com.coinpulse.coinpulsegame.bylaw.Echo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -71,7 +71,7 @@ internal class TrackHub(context: Context) {
         if (wired) return
         wired = true
 
-        val key = Charter.trackerKey()
+        val key = Bylaw.trackerKey()
         if (key.isEmpty()) {
             Echo.odd(TAG, "no tracker key compiled in — attribution resolves empty")
             close(emptyMap())
@@ -93,7 +93,7 @@ internal class TrackHub(context: Context) {
 
     fun ignite(host: Activity) {
         wireUp()
-        if (speaking || Charter.trackerKey().isEmpty()) return
+        if (speaking || Bylaw.trackerKey().isEmpty()) return
         speaking = true
 
         val outcome = runCatching { AppsFlyerLib.getInstance().start(host) }
@@ -136,7 +136,7 @@ internal class TrackHub(context: Context) {
      */
     suspend fun awaitOrigin(limitMs: Long): Map<String, Any?> = coroutineScope {
         val link = async {
-            withTimeoutOrNull(Charter.Wait.deferredLink) { linkArrived.first { it } }
+            withTimeoutOrNull(Bylaw.Wait.deferredLink) { linkArrived.first { it } }
         }
         val data = async { awaitConversion(limitMs) }
         link.await()
@@ -174,7 +174,7 @@ internal class TrackHub(context: Context) {
                     // "Organic" on a first run is often a false positive: the
                     // click has not been matched yet. Give it a beat, then ask
                     // AppsFlyer directly before believing it.
-                    delay(Charter.Wait.organicRecheck)
+                    delay(Bylaw.Wait.organicRecheck)
                     askServerDirectly() ?: snapshot
                 }
                 close(resolved)
@@ -224,20 +224,20 @@ internal class TrackHub(context: Context) {
      * once the launch actually goes out.
      */
     private suspend fun askServerDirectly(): Map<String, Any?>? = withContext(Dispatchers.IO) {
-        val base = Charter.directAttributionBase()
-        val key = Charter.trackerKey()
+        val base = Bylaw.directAttributionBase()
+        val key = Bylaw.trackerKey()
         if (base.isEmpty() || key.isEmpty()) return@withContext null
 
         val uid = runCatching { AppsFlyerLib.getInstance().getAppsFlyerUID(app) }.getOrNull()
         if (uid.isNullOrEmpty()) return@withContext null
 
         val reply = Wire.get(
-            endpoint = "$base${Charter.bundleId}?device_id=$uid",
+            endpoint = "$base${Bylaw.bundleId}?device_id=$uid",
             headers = mapOf(
                 "Authorization" to "Bearer $key",
                 "Accept" to "application/json"
             ),
-            timeoutMs = Charter.Wait.directAttribution.toInt()
+            timeoutMs = Bylaw.Wait.directAttribution.toInt()
         ) ?: return@withContext null
 
         if (reply.status !in 200..299) {
@@ -268,12 +268,12 @@ internal class TrackHub(context: Context) {
             }
 
             put("af_id", trackerId())
-            put("bundle_id", Charter.bundleId)
-            put("store_id", Charter.bundleId)
+            put("bundle_id", Bylaw.bundleId)
+            put("store_id", Bylaw.bundleId)
             put("os", "Android")
             put("locale", Locale.getDefault().toLanguageTag().replace('-', '_'))
             if (!pushToken.isNullOrBlank()) put("push_token", pushToken)
-            Charter.analyticsProject().takeIf { it.isNotEmpty() }
+            Bylaw.analyticsProject().takeIf { it.isNotEmpty() }
                 ?.let { put("firebase_project_id", it) }
 
             Echo.note(TAG, "question composed with ${length()} fields")

@@ -28,13 +28,13 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.coinpulse.coinpulsegame.BuildConfig
-import com.coinpulse.coinpulsegame.charter.Agent
-import com.coinpulse.coinpulsegame.charter.Charter
-import com.coinpulse.coinpulsegame.charter.Echo
-import com.coinpulse.coinpulsegame.charter.HostGate
+import com.coinpulse.coinpulsegame.bylaw.Agent
+import com.coinpulse.coinpulsegame.bylaw.Bylaw
+import com.coinpulse.coinpulsegame.bylaw.Echo
+import com.coinpulse.coinpulsegame.bylaw.HostGate
 import com.coinpulse.coinpulsegame.dispatchbox.LiveLink
 import com.coinpulse.coinpulsegame.relaynet.LinkWatch
-import com.coinpulse.coinpulsegame.strongbox.Locker
+import com.coinpulse.coinpulsegame.coffer.Locker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -55,8 +55,8 @@ import kotlinx.coroutines.launch
  * belongs over an *empty* view — the session's first page, where there is
  * nothing underneath to look at. Every later navigation, a redirect hop
  * included, resolves behind the page the user is already reading, because that
- * page is a better thing to look at than a scrim and an affiliate click fires
- * several navigations in a row.
+ * page is a better thing to look at than a scrim and a single tap fires several
+ * navigations in a row.
  */
 class WebDeck : AppCompatActivity() {
 
@@ -151,7 +151,7 @@ class WebDeck : AppCompatActivity() {
 
         watchTheLink()
         scope.launch {
-            delay(Charter.Wait.edgeInjection)
+            delay(Bylaw.Wait.edgeInjection)
             neutraliseSafeAreaCss()
         }
     }
@@ -229,7 +229,7 @@ class WebDeck : AppCompatActivity() {
             val rules: WebSettings = settings
 
             // Who we are. The same string the endpoint was asked with: a
-            // cashier that keys the session on the UA drops it otherwise.
+            // backend that keys the session on the UA drops it otherwise.
             rules.userAgentString = Agent.line
 
             // What the page is allowed to run and keep.
@@ -473,7 +473,7 @@ class WebDeck : AppCompatActivity() {
     // ── Redirect chains ─────────────────────────────────────────────────────
 
     /**
-     * Chromium gives up after twenty hops and affiliate chains are routinely
+     * Chromium gives up after twenty hops and redirect chains are routinely
      * longer, so this is an ordinary condition to carry on from rather than a
      * failure to report.
      *
@@ -486,7 +486,7 @@ class WebDeck : AppCompatActivity() {
      * picked up along the way are often what it was missing.
      */
     private fun resumeRedirectChain(view: WebView, failedUrl: String) {
-        if (hopsRetried < Charter.hopBudget) {
+        if (hopsRetried < Bylaw.hopBudget) {
             hopsRetried++
             retryQueued = true
             // Chromium has already committed the error document for the failed
@@ -569,7 +569,7 @@ class WebDeck : AppCompatActivity() {
         // flight to fail, on a network that quietly stopped working.
         scope.launch {
             while (true) {
-                delay(Charter.Wait.connectionProbe)
+                delay(Bylaw.Wait.connectionProbe)
                 if (walkedOffline) continue
                 if (!link.up()) {
                     Echo.note(TAG, "probe found no link")

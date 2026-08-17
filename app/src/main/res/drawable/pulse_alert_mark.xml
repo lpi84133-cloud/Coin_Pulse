@@ -5,12 +5,47 @@
     android:viewportHeight="24"
     android:tint="#FFFFFFFF">
     <!--
-      A single monochrome flame. Notification icons on Android 5+ are drawn as
-      an alpha silhouette, so anything but white on transparent shows up as a
-      grey square in the status bar. The path is Material's "whatshot" flame,
-      recognisable at 24×24 and still legible at the 18×18 status-bar size.
+      A pulse shard, drawn for this application. Notification icons are drawn by
+      the system as an alpha silhouette, so the whole mark is white on
+      transparent and carries no colour of its own.
+
+      Two things it deliberately is not. It is not a flame: the Material
+      "whatshot" path is what a shell of this lineage ships by default, and the
+      same twelve curves then sit in several unrelated applications at once,
+      which is a comparison anyone can run. And it is not the launcher mark
+      either — that one is a coin ring crossed by a waveform, and a status bar
+      showing a shrunken copy of the launcher icon says nothing the icon did
+      not already say.
+
+      The shape reads at the 18×18 the status bar actually gives it: one solid
+      body with a facet cut out along its axis, and a chip broken off at the
+      lower left. Corners are eased with quadratics so the tips do not alias
+      into grey mush at that size.
     -->
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M13.5,0.67 c0,0 0.74,2.65 0.74,4.8 c0,2.06 -1.35,3.73 -3.41,3.73 c-2.07,0 -3.63,-1.67 -3.63,-3.73 l0.03,-0.36 C5.21,7.51 4,10.62 4,14 c0,4.42 3.58,8 8,8 s8,-3.58 8,-8 C20,8.61 17.41,3.8 13.5,0.67 z M11.71,19 c-1.78,0 -3.22,-1.4 -3.22,-3.14 c0,-1.62 1.05,-2.76 2.81,-3.12 c1.77,-0.36 3.6,-1.21 4.62,-2.58 c0.39,1.29 0.59,2.65 0.59,4.04 C16.51,16.85 14.36,19 11.71,19 z" />
+        android:fillType="evenOdd"
+        android:pathData="M12.1,1.9
+                          Q12.6,1.9 12.95,2.4
+                          L19.3,8.2
+                          Q19.75,8.65 19.6,9.25
+                          L17.2,15.1
+                          L13.1,21.9
+                          Q12.75,22.4 12.1,22.35
+                          Q11.55,22.25 11.3,21.75
+                          L7.0,14.9
+                          L4.5,8.9
+                          Q4.3,8.35 4.7,8.0
+                          L11.3,2.3
+                          Q11.6,1.9 12.1,1.9
+                          Z
+                          M12.0,6.0
+                          L15.0,10.2
+                          L12.7,17.2
+                          L9.5,10.5
+                          Z
+                          M3.2,17.6
+                          L6.6,19.0
+                          L4.4,21.9
+                          Z" />
 </vector>

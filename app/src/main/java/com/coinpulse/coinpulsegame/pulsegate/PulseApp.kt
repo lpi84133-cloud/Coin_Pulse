@@ -2,8 +2,8 @@ package com.coinpulse.coinpulsegame.pulsegate
 
 import android.app.Application
 import com.coinpulse.coinpulsegame.BuildConfig
-import com.coinpulse.coinpulsegame.charter.Echo
-import com.coinpulse.coinpulsegame.charter.HostGate
+import com.coinpulse.coinpulsegame.bylaw.Echo
+import com.coinpulse.coinpulsegame.bylaw.HostGate
 import com.coinpulse.coinpulsegame.dispatchbox.AlertLane
 import com.coinpulse.coinpulsegame.relaynet.TrackHub
 import com.google.firebase.FirebaseApp

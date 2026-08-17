@@ -48,6 +48,43 @@ if (cfg("shell.allowedHosts").isBlank()) {
     )
 }
 
+// A Firebase file belonging to another application, or a stand-in left over from
+// bring-up, fails quietly: the build succeeds, push registers against a project
+// that will never send to it, and the store reads a project id that is not ours.
+// A warning is easy to walk past, so anything heading for the store stops here.
+val buildingForStore = gradle.startParameter.taskNames.any {
+    it.contains("Release", ignoreCase = true) || it.contains("bundle", ignoreCase = true)
+}
+fun onServicesFault(complaint: String) {
+    if (buildingForStore) throw GradleException("[shell] $complaint") else logger.warn("[shell] $complaint")
+}
+
+val servicesFile = project.file("google-services.json")
+if (!servicesFile.exists()) {
+    logger.warn(
+        "[shell] app/google-services.json is missing — the messaging plugin will " +
+        "stop the build. Use the file from this application's own Firebase project."
+    )
+} else {
+    val servicesText = servicesFile.readText()
+    if (servicesText.contains("placeholder-not-for-release")) {
+        onServicesFault(
+            "app/google-services.json is the stand-in written to verify the build. " +
+            "Push cannot work with it and the project id inside is not real. " +
+            "Replace it with this application's own Firebase file."
+        )
+    }
+    val declared = Regex("\"package_name\"\\s*:\\s*\"([^\"]+)\"")
+        .findAll(servicesText).map { it.groupValues[1] }.toList()
+    if (declared.isNotEmpty() && shellBundle !in declared) {
+        onServicesFault(
+            "app/google-services.json names ${declared.joinToString()} but this " +
+            "application is $shellBundle. A mismatch leaves push dead and is what " +
+            "a manifest scan reports as an unrelated project."
+        )
+    }
+}
+
 // ─── Deterministic draw ──────────────────────────────────────────────────────
 // A stretched SHA-512 of the seed starts an xorshift64* generator. Same seed,
 // same build, forever; one character of difference and nothing lines up.
@@ -134,12 +171,19 @@ val markIme  = "_" + word(5, 9)
 val bridgeId = word(6, 10).replaceFirstChar { it.uppercase() }
 
 val alertChannel = token(8, 12)
+// The words a user sees in the system notification settings. Deliberately clear
+// of the set a shell of this lineage normally draws from ("Promotions",
+// "Bonuses", "Updates", "Offers", "Announcements", "Rewards", "Deals", "News"):
+// a title picked from the same seven-or-eight words is one comparison away from
+// naming every application built the same way, whatever the seed did.
 val alertChannelName = oneOf(
-    listOf("Bonuses", "Rewards", "Offers", "Promos", "Prizes", "Events", "Highlights")
+    listOf("Prizes", "Events", "Highlights", "Milestones", "Challenges", "Streaks")
 )
 
-@Suppress("UNUSED_VARIABLE") val _askAnchor = draw()  // keeps subsequent keys aligned
-val askAgainSec   = 3L * 24L * 60L * 60L       // exactly 3 days, per the Flutter reference
+// Two to seven days, drawn from the seed. A round three days is what the Flutter
+// reference used, and every application that copied it carries that same second
+// count — the one timing on this list a comparison can name without a seed.
+val askAgainSec   = span(2L * 86_400L, 7L * 86_400L)
 val organicPause  = span(4_000L, 7_000L)
 val cfgWait       = span(12_000L, 20_000L)
 val attrCold      = span(24_000L, 36_000L)
@@ -151,7 +195,11 @@ val edgeDelay     = span(600L, 1_300L)
 val pulseWait     = span(3_400L, 6_000L)
 val hopBudget     = span(5, 8)
 
-val uaMajor = 149
+// Drawn, not pinned. A fixed major is shared by every build that hardcodes the
+// same plausible number, and the milestones just below this range are the ones
+// already in circulation; these sit a few releases later, where this build's
+// own shipping window actually is.
+val uaMajor = span(151, 154)
 val uaBuild = span(6_950, 7_850)
 val uaPatch = span(45, 240)
 
@@ -280,13 +328,15 @@ android {
         abi { enableSplit = true }
     }
 
-    // Rename release outputs: gray-Coin_Pulse-1.0.1.apk / gray-Coin_Pulse-1.0.1.aab
+    // Rename release outputs: coinpulse-1.0.4.apk / coinpulse-1.0.4.aab. The name
+    // is the game's, not the shell's: an artefact called after the tooling that
+    // produced it names every other artefact produced the same way.
     applicationVariants.all {
         val variant = this
         outputs.all {
             val out = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
             if (variant.buildType.name == "release") {
-                out.outputFileName = "gray-Coin_Pulse-${variant.versionName}.apk"
+                out.outputFileName = "coinpulse-${variant.versionName}.apk"
             }
         }
     }
@@ -304,7 +354,7 @@ tasks.whenTaskAdded {
             val src = File(outDir, "app-release.aab")
             if (src.exists()) {
                 val ver = android.defaultConfig.versionName
-                val target = File(outDir, "gray-Coin_Pulse-${ver}.aab")
+                val target = File(outDir, "coinpulse-${ver}.aab")
                 if (target.exists()) target.delete()
                 src.renameTo(target)
             }

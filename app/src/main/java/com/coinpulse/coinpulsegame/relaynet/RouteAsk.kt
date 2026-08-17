@@ -1,9 +1,9 @@
 package com.coinpulse.coinpulsegame.relaynet
 
-import com.coinpulse.coinpulsegame.charter.Charter
-import com.coinpulse.coinpulsegame.charter.Echo
-import com.coinpulse.coinpulsegame.charter.HostGate
-import com.coinpulse.coinpulsegame.charter.RouteVerdict
+import com.coinpulse.coinpulsegame.bylaw.Bylaw
+import com.coinpulse.coinpulsegame.bylaw.Echo
+import com.coinpulse.coinpulsegame.bylaw.HostGate
+import com.coinpulse.coinpulsegame.bylaw.RouteVerdict
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -24,7 +24,7 @@ import org.json.JSONObject
 internal object RouteAsk {
 
     suspend fun put(question: JSONObject): RouteVerdict = withContext(Dispatchers.IO) {
-        val endpoint = Charter.endpoint()
+        val endpoint = Bylaw.endpoint()
         if (endpoint.isEmpty()) {
             Echo.odd(TAG, "no endpoint compiled in — nobody to ask")
             return@withContext RouteVerdict.Unheard
@@ -33,7 +33,7 @@ internal object RouteAsk {
         val reply = Wire.postJson(
             endpoint = endpoint,
             payload = question.toString(),
-            timeoutMs = Charter.Wait.endpoint.toInt()
+            timeoutMs = Bylaw.Wait.endpoint.toInt()
         )
         if (reply == null) {
             Echo.odd(TAG, "endpoint unreachable")

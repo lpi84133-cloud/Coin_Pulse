@@ -4,7 +4,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import com.coinpulse.coinpulsegame.BuildConfig
-import com.coinpulse.coinpulsegame.charter.Echo
+import com.coinpulse.coinpulsegame.bylaw.Echo
 
 /**
  * The one channel this application posts on.
