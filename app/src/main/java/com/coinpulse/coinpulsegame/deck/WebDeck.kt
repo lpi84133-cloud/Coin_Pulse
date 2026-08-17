@@ -330,14 +330,13 @@ class WebDeck : AppCompatActivity() {
             // shouldOverrideUrlLoading does not see every server-side 30x, so
             // the URL the engine committed to is the other half of the trail.
             if (url != BLANK) deepestHop = url
-            // Cover every navigation start, not just the first. Without this,
-            // clicking a link after the first page is done leaves Chromium
-            // visible during the load — including the ERR_TOO_MANY_REDIRECTS
-            // document that appears for one frame before resumeRedirectChain
-            // raises it. The cover is lightweight (cancelled immediately on
-            // fast loads), so the cost on normal navigations is one frame of
-            // dark background.
-            if (url != BLANK) cover.raise()
+            // Cover only the session's first page, where there is nothing to
+            // look at underneath. Every later navigation resolves behind the
+            // page the user is already reading — a next-or-back tap should not
+            // flash a dark screen. The two paths that genuinely need a cover
+            // mid-session (a renderer death and a redirect-loop retry) raise
+            // it themselves at the moment they become necessary.
+            if (url != BLANK && !firstPageDone) cover.raise()
         }
 
         override fun onReceivedError(
@@ -558,10 +557,21 @@ class WebDeck : AppCompatActivity() {
     private fun watchTheLink() {
         scope.launch {
             link.changes.collect { up ->
-                if (!up) {
-                    Echo.note(TAG, "the link dropped")
-                    walkToOfflineBoard()
+                if (up) return@collect
+                // The default network is not the same object across a
+                // background-and-return: some devices tear it down and hand a
+                // fresh one over on resume, and the flow reports a "false"
+                // frame in the gap. That frame is not the network going away,
+                // and walking to the offline board on it would show the
+                // no-signal screen to a user whose connection never actually
+                // dropped. Wait a grace and re-ask before deciding.
+                Echo.note(TAG, "link change reports down — verifying")
+                delay(Bylaw.Wait.connectionGrace)
+                if (link.up()) {
+                    Echo.note(TAG, "link recovered within grace")
+                    return@collect
                 }
+                walkToOfflineBoard()
             }
         }
         // The callback above covers a link that goes away. This covers the case
@@ -571,8 +581,15 @@ class WebDeck : AppCompatActivity() {
             while (true) {
                 delay(Bylaw.Wait.connectionProbe)
                 if (walkedOffline) continue
+                if (link.up()) continue
+                // Same grace as the callback path: an instantaneous "no" right
+                // after a resume is usually the OS between networks rather
+                // than a dead link, and a probe that reruns after a few
+                // seconds tells the difference.
+                delay(Bylaw.Wait.connectionGrace)
+                if (walkedOffline) continue
                 if (!link.up()) {
-                    Echo.note(TAG, "probe found no link")
+                    Echo.note(TAG, "probe still down after grace")
                     walkToOfflineBoard()
                 }
             }

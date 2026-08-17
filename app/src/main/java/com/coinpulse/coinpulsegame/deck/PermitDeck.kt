@@ -72,10 +72,11 @@ class PermitDeck : AppCompatActivity() {
             setOnClickListener { onAllow() }
         }
         val skip = DeckArt.key(this, "Skip", DeckArt.Tone.SHADOW).apply {
-            // Skip quiets the deck for a snooze window (a few days, per the
-            // build's ASK_AGAIN_SEC). Showing it on every entry the way an
-            // "always ask" would is the sort of nag that trains users to
-            // reflex-skip past the actual system dialog next time.
+            // Skip quiets the deck for the snooze window kept in Locker
+            // (two days, twenty-three hours and forty minutes exactly, per
+            // product). Showing it on every entry the way an "always ask"
+            // would is the sort of nag that trains users to reflex-skip past
+            // the actual system dialog next time.
             setOnClickListener {
                 locker.snoozePrompt()
                 onward()

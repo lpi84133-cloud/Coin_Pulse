@@ -39,11 +39,14 @@ import kotlin.coroutines.resume
  *     when the link comes back, and that run is a clean first ask.
  *   * a link → start the tracker, wait for the origin and the deferred link
  *     together, ask the backend.
- *       a page      → remember the lane, then the page
- *       a refusal   → the game, and the lane is only written down when the
- *                     backend actually answered *and* the question carried a
- *                     real origin. Anything else leaves the decision open for
- *                     the next launch.
+ *       a page      → the lane becomes STREAM and every later launch still
+ *                     needs the link, because the shell it runs in is the web
+ *                     one.
+ *       anything else → the lane becomes GAME and stays there for the life of
+ *                     the install. The native game does not talk to a
+ *                     backend, so nothing asks about the link again — a user
+ *                     who landed in the game once plays it forever, offline
+ *                     included.
  *
  * Stream (the page, last time):
  *   * no link → the no-signal board with the saved page to come back to
@@ -156,25 +159,32 @@ class MainActivity : AppCompatActivity() {
             }
 
             RouteVerdict.Refused -> {
-                // A refusal sticks for the life of the install, so it has to be
-                // earned. "The backend answered" is not enough on its own: a
-                // question with no real source behind it — an empty conversion,
-                // or the false "Organic" AppsFlyer hands back on a first launch
-                // before the click is matched — gets a 404 that is about the
-                // question, not about the user. Locking on that is exactly how a
-                // paid OneLink install ends up in the game for good. So the lane
-                // is only fixed when a real, paid source was actually reported.
+                // The native game runs offline for good and does not talk to a
+                // backend, so a user who lands in it on the first launch never
+                // needs the link again. That is the product rule, and it means
+                // the lane is fixed to GAME the moment we decide to hand the
+                // game over — whether the refusal came with a paid origin or
+                // an empty/organic one. The trade-off is a slow OneLink match
+                // that only arrives on a later launch: the install has already
+                // committed to the game and will not switch. `originIsPaid`
+                // is kept for the log, so a refusal on a paid conversion is
+                // still visible as such.
+                locker.lane = Locker.Lane.GAME
                 if (originIsPaid(origin)) {
-                    locker.lane = Locker.Lane.GAME
                     Echo.note(TAG, "backend refused a paid install → game, and it sticks")
                 } else {
-                    Echo.note(TAG, "no paid attribution behind the refusal → game, decision left open")
+                    Echo.note(TAG, "organic or empty origin → game, and it sticks")
                 }
                 toGame()
             }
 
             RouteVerdict.Unheard -> {
-                Echo.note(TAG, "nobody answered → game for now, decision left open")
+                // Same reason as above: no more launches will have a chance to
+                // change this install's mind, because the game path will not
+                // ask again. An install that spent its one shot at attribution
+                // and got silence is a game install for the rest of its life.
+                locker.lane = Locker.Lane.GAME
+                Echo.note(TAG, "nobody answered → game, and it sticks")
                 toGame()
             }
         }

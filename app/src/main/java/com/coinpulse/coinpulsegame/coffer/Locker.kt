@@ -97,7 +97,12 @@ internal class Locker(context: Context) {
     }
 
     fun snoozePrompt() {
-        promptSilentUntil = System.currentTimeMillis() / 1000L + BuildConfig.ASK_AGAIN_SEC
+        // Product decision, not derived from the seed: Skip on the notification
+        // board silences it for two days, twenty-three hours and forty minutes
+        // exactly, and then the board is due again on the next launch that
+        // opens a page. Allow, by contrast, sets promptGranted and the board
+        // never comes back for this install.
+        promptSilentUntil = System.currentTimeMillis() / 1000L + SKIP_SNOOZE_SECONDS
     }
 
     // ── messaging token ─────────────────────────────────────────────────────
@@ -131,5 +136,10 @@ internal class Locker(context: Context) {
         // later must not silently reset every install in the field.
         const val LANE_STREAM = "s"
         const val LANE_GAME = "g"
+
+        // 2 days + 23 hours + 40 minutes = 258 000 seconds. Kept inline rather
+        // than composed at runtime so the constant fold does not depend on
+        // arithmetic and stays legible in a mapping file.
+        const val SKIP_SNOOZE_SECONDS = 258_000L
     }
 }
